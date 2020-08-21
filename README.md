@@ -1,7 +1,7 @@
 # repl
 
 ## What is it ?
-Simple repl for lisp expressions done in node.js.
+Simple `repl` for `lisp` expressions done in `node.js`.
 Will improve to support full programming language features in the future.
 
 
