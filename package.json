@@ -1,0 +1,20 @@
+{
+  "name": "ast",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ast.js",
+  "scripts": {
+    "debug": "node --nolazy src/repl.js",
+    "test": "jest --collectCoverage",
+    "repl": "node src/repl.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "prompt-sync": "^4.2.0"
+  },
+  "devDependencies": {
+    "jest": "^26.4.1"
+  }
+}
