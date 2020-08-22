@@ -4,7 +4,7 @@
   "description": "",
   "main": "ast.js",
   "scripts": {
-    "debug": "node --nolazy src/repl.js",
+    "debug": "node --nolazy src/traverser.js",
     "test": "jest --collectCoverage",
     "repl": "node src/repl.js"
   },

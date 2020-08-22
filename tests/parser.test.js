@@ -1,4 +1,4 @@
-const { parse, isDisposableChar, isEndOfExpression, isNumber, isOperator, isStartOfExpression } = require('../src/parser');
+const { parse, isDisposableChar, isNumber } = require('../src/parser');
 
 describe('[parser] tests', () => {
     describe('if invalid statement', () => {
@@ -19,14 +19,23 @@ describe('[parser] tests', () => {
                 expect(error.message).toBe('Missing 1 (');
             }
         });
+
+        test('should throw invalid syntax error', () => {
+            try {
+                const expression = '(+ ` `)'
+                parse(expression)
+            } catch (error) {
+                expect(error.message).toBe('invalid syntax with `');
+            }
+        })
     });
     describe('if valid statement', () => {
         test('should parse simple ast correctly', () => {
-            const expression = '(+ 1 2)'
+            const expression = '(+ 1 2.1)'
             const ast = parse(expression);
             const expectedAst = {
-                operator: '+',
-                literals: [1, 2],
+                method: '+',
+                literals: [{ type: 'number', value: 1 }, { type: 'number', value: 2.1 }],
                 children: []
             }
             expect(JSON.stringify(ast, null, 2)).toBe(JSON.stringify(expectedAst, null, 2));
@@ -35,14 +44,33 @@ describe('[parser] tests', () => {
             const expression = '(+ 10 (+ 2 (+ 30 4)))'
             const ast = parse(expression);
             const expectedAst = {
-                operator: '+',
-                literals: [10],
+                method: '+',
+                literals: [{ type: 'number', value: 10 }],
                 children: [{
-                    operator: '+',
-                    literals: [2],
+                    method: '+',
+                    literals: [{ type: 'number', value: 2 }],
                     children: [{
-                        operator: '+',
-                        literals: [30, 4],
+                        method: '+',
+                        literals: [{ type: 'number', value: 30 }, { type: 'number', value: 4 }],
+                        children: []
+                    }]
+                }]
+            }
+
+            expect(JSON.stringify(ast, null, 2)).toBe(JSON.stringify(expectedAst, null, 2));
+        });
+        test('should parse complex with variables ast correctly', () => {
+            const expression = '(+ 10 (+ 2 (+ 30 a)))'
+            const ast = parse(expression);
+            const expectedAst = {
+                method: '+',
+                literals: [{ type: 'number', value: 10 }],
+                children: [{
+                    method: '+',
+                    literals: [{ type: 'number', value: 2 }],
+                    children: [{
+                        method: '+',
+                        literals: [{ type: 'number', value: 30 }, { type: 'variable', value: 'a' }],
                         children: []
                     }]
                 }]

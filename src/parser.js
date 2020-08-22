@@ -4,10 +4,6 @@ const isNumber = (char = "") => {
     return char.match(new RegExp(/[0-9]/gi)) !== null;
 }
 
-const isOperator = (char = "") => {
-    return char.match(new RegExp(/\+|\-|\*|\//gi)) !== null;
-}
-
 const isStartOfExpression = (char = "") => {
     return char.match(new RegExp(/\(/gi)) !== null;
 }
@@ -19,7 +15,6 @@ const isEndOfExpression = (char = "") => {
 const isDisposableChar = (char = "") => {
     return char === " ";
 }
-
 
 const endOfExpression = (expression = "", index) => {
     let end = index;
@@ -68,52 +63,96 @@ const ensureValidStatement = (statement = "") => {
     }
 }
 
-const parseAST = (expression = "", index = 0, level = 0) => {
-    ensureValidStatement(expression)
-
-    return expression
-        .substring(index, expression.length)
-        .split('')
-        .reduce((ast, char, idx) => {
-            if (ast.currentExpressionEnd !== null) {
-                return ast;
-            } else {
-                if (isDisposableChar(char)) {
-                    ast.lastCharSpace = true;
-                    return ast;
-                }
-                if (isStartOfExpression(char) && ast.operator !== null) {
-                    const endIdx = endOfExpression(expression, idx + 1);
-                    let subexpression = expression.substring(idx + 1, endIdx);
-                    ast.children.push(parseAST(subexpression, 0, level++));
-                    ast.currentExpressionEnd = endIdx;
-                    return ast;
-                } else {
-                    if (isOperator(char)) {
-                        ast.operator = char;
-                    } else if (isNumber(char)) {
-                        if (!ast.lastCharSpace) {
-                            let el = ast.literals.pop();
-                            var numb = el.toString() + char;
-
-                            el = parseInt(numb);
-                            ast.literals.push(el);
-                        } else {
-                            ast.literals.push(parseInt(char));
-                        }
-                    }
-                    ast.lastCharSpace = false;
-                    return ast;
-                }
-            }
-
-        }, { operator: null, literals: [], children: [], currentExpressionEnd: null, lastCharSpace: false, level: level, });
+const rules = {
+    string: /".+"/gi,
+    number: /[0-9.?0-9?]+/gi,
+    symbol: /[\&|\%|\^\|\#|\@\!|\~|\<|\>|\?]+/gi,
+    variable: /\w|(-|_)/gi,
 }
 
+const getToken = (token) => {
+    const ruleKeys = Object.keys(rules);
+    const tok = { type: null, value: null };
+    for (let i = 0; i < ruleKeys.length; i++) {
+        const rule = ruleKeys[i];
+        const regex = new RegExp(rules[rule]);
+        if (token.match(regex)) {
+            tok.type = rule;
+            if (rule === 'number') {
+                if (token.match(/[0-9]+\.[0-9]+/gi)) {
+                    tok.value = parseFloat(token);
+                } else {
+                    tok.value = parseInt(token);
+                }
+            } else {
+                if (token.match(/".+"/gi)) {
+                    tok.value = token.replace(/\"/gi, "")
+                } else {
+                    tok.value = token;
+                    tok.type = "variable";
+                }
+            }
+            break;
+        }
+    }
+    if (tok.type === null && tok.value === null) {
+        throw new Error(`invalid syntax with ${token}`);
+    }
+    return tok;
+}
+
+const parser = (expression) => {
+    ensureValidStatement(expression)
+
+    return expression.split('')
+        .reduce((ast, char, idx) => {
+            if (ast.insideStatement) return ast;
+            if (idx === 0 && isStartOfExpression(char)) return ast;
+            if (isDisposableChar(char)) {
+                if (ast.currentToken !== '') {
+                    if (ast.method === null) {
+                        ast.method = ast.currentToken;
+                    } else {
+                        const tok = getToken(ast.currentToken);
+                        ast.literals.push(tok);
+                    }
+
+                    ast.currentToken = '';
+                }
+                ast.space = true;
+                return ast;
+            } else {
+                if (isStartOfExpression(char)) {
+                    const endIdx = endOfExpression(expression, idx);
+                    let subexpression = expression.substring(idx, endIdx);
+                    ast.children.push(parser(subexpression));
+                    ast.insideStatement = true;
+                } else {
+                    if (isEndOfExpression(char)) {
+                        if (ast.currentToken !== '') {
+                            if (ast.space) {
+                                const tok = getToken(ast.currentToken);
+                                ast.literals.push(tok);
+                            }
+                            ast.currentToken = '';
+                            ast.space = false;
+                            ast.insideStatement = false;
+                        }
+                    } else {
+                        ast.currentToken += char;
+                    }
+                    return ast;
+                }
+
+                return ast;
+            }
+
+        }, { method: null, currentToken: '', literals: [], children: [], space: false, insideStatement: false })
+}
 
 const parse = (expression) => {
-    const ast = parseAST(expression);
-    const removed = removeUnwantedKeys(ast, ['currentExpressionEnd', 'lastCharSpace', 'level'])
+    const ast = parser(expression);
+    const removed = removeUnwantedKeys(ast, ['currentToken', 'space', 'insideStatement'])
     return removed;
 }
 
@@ -122,4 +161,3 @@ exports.isNumber = isNumber;
 exports.isDisposableChar = isDisposableChar;
 exports.isEndOfExpression = isEndOfExpression;
 exports.isStartOfExpression = isStartOfExpression;
-exports.isOperator = isOperator;

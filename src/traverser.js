@@ -1,15 +1,20 @@
-const operate = (operator, a, b) => {
-    switch (operator) {
-        case '+':
-            return a + b;
-        case '-':
-            return a - b;
-        case '*':
-            return a * b;
-        case '/':
-            return a / b;
-        default:
-            throw new Error("Invalid operator")
+const methods = {
+    '+': (args) => args.reduce((acc, curr) => acc + curr),
+    '-': (args) => args.reduce((acc, curr) => acc - curr),
+    '*': (args) => args.reduce((acc, curr) => acc * curr),
+    '/': (args) => args.reduce((acc, curr) => acc / curr),
+    '%': (args) => args.reduce((acc, curr) => acc % curr),
+}
+
+
+const operate = (operator, args) => {
+    const method = methods[operator];
+    if (method === null || method === undefined) {
+        // TODO: compile extra methods
+        throw new Error('Invalid method')
+    } else {
+        const value = method(args);
+        return value;
     }
 }
 
@@ -17,13 +22,14 @@ const operate = (operator, a, b) => {
 const traverse = (ast) => {
     if (ast.literals.length === 0) return 0;
 
-    let operatedLiterals = ast.literals.reduce((acc, current) => {
-        return operate(ast.operator, acc, current);
-    });
+    const values = ast.literals.map(literals => literals.value);
+
+    let operatedLiterals = operate(ast.method, values);
 
     if (ast.children.length > 0) {
         for (let i = 0; i < ast.children.length; i++) {
-            operatedLiterals = operate(ast.operator, operatedLiterals, traverse(ast.children[i]));
+            const vals = [operatedLiterals, traverse(ast.children[i])];
+            operatedLiterals = operate(ast.method, vals);
         }
     }
     return operatedLiterals;
