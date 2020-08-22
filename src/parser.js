@@ -1,9 +1,5 @@
 const { removeUnwantedKeys } = require("./utils");
 
-const isNumber = (char = "") => {
-    return char.match(new RegExp(/[0-9]/gi)) !== null;
-}
-
 const isStartOfExpression = (char = "") => {
     return char.match(new RegExp(/\(/gi)) !== null;
 }
@@ -157,7 +153,6 @@ const parse = (expression) => {
 }
 
 exports.parse = parse;
-exports.isNumber = isNumber;
 exports.isDisposableChar = isDisposableChar;
 exports.isEndOfExpression = isEndOfExpression;
 exports.isStartOfExpression = isStartOfExpression;
