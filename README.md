@@ -29,5 +29,27 @@ repl> (+ 5 -2)
 3
 ```
 
+```sh
+repl> tree
+tree> (+ 1 2)
+{
+  "method": "+",
+  "literals": [
+    {
+      "type": "number",
+      "value": 1
+    },
+    {
+      "type": "number",
+      "value": 2
+    }
+  ],
+  "children": []
+}
+tree> exit
+repl> (+ 1 2)
+3
+```
+
 ## How to run tests ?
 ```npm test```
