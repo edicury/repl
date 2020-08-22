@@ -62,7 +62,8 @@ const ensureValidStatement = (statement = "") => {
 const rules = {
     string: /".+"/gi,
     number: /[0-9.?0-9?]+/gi,
-    symbol: /[\&|\%|\^\|\#|\@\!|\~|\<|\>|\?]+/gi,
+    bool: /true|false/gi,
+    statement: /\{.?\}/gi,
     variable: /\w|(-|_)/gi,
 }
 
@@ -85,7 +86,7 @@ const getToken = (token) => {
                     tok.value = token.replace(/\"/gi, "")
                 } else {
                     tok.value = token;
-                    tok.type = "variable";
+                    tok.type = tok.type === null ? "variable" : tok.type;
                 }
             }
             break;

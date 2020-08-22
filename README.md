@@ -30,6 +30,16 @@ repl> (+ 5 -2)
 ```
 
 ```sh
+repl> (= 1 0)
+true
+```
+
+```sh
+repl> (= "hello" "hello")
+true
+```
+
+```sh
 repl> tree
 tree> (+ 1 2)
 {
