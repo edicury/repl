@@ -4,10 +4,13 @@ const methods = {
     '*': (args) => args.reduce((acc, curr) => acc * curr),
     '/': (args) => args.reduce((acc, curr) => acc / curr),
     '%': (args) => args.reduce((acc, curr) => acc % curr),
-    '=': (args = []) => {
+    'and': (args) => {
         const comparable = args[0];
         args.shift();
         return args.filter((arg) => arg !== comparable).length === 0
+    },
+    'or': (args = []) => {
+        return args.some((arg) => arg === 'true');
     }
 }
 
